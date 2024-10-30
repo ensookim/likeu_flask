@@ -3,6 +3,7 @@ from ultralytics import YOLO
 import numpy as np
 import cv2
 import os
+import datetime
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -44,6 +45,12 @@ skeleton_connections = [
 def process_video(video_path):
     cap = cv2.VideoCapture(video_path)
     frame_number = 1
+    
+    # 허용 오차 설정
+    height_tolerance = 0.01
+    
+    # 슛 던지는 시작 프레임
+    start_frame=0
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -89,25 +96,33 @@ def process_video(video_path):
 # 비디오 업로드 및 처리 라우트
 @app.route('/upload', methods=['POST'])
 def upload_video():
+    datetime_now_string = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
     if 'video' not in request.files:
         return "No video file", 400
 
     video = request.files['video']
     if video.filename == '':
         return "No selected video", 400
+    else :
+        video.filename = datetime_now_string+'.MOV'
 
     video_path = os.path.join(UPLOAD_FOLDER, video.filename)
     video.save(video_path)
 
     # 비디오 처리
     process_video(video_path)
+    csv_filename = 'output/{}.csv'.format(datetime_now_string)
+    process_video(video_path, csv_filename)
 
     return "Video processed successfully", 200
 
 # 메인 페이지 라우트
 @app.route('/')
 def index():
-    return render_template('index.html')
+    upload_video_name = os.listdir('./uploads')
+    print(upload_video_name)
+    return render_template('index.html', upload_video_name=upload_video_name)
 
 if __name__=="__main__":
     app.run(debug=True, port=3000, host='0.0.0.0')
