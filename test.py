@@ -6,7 +6,7 @@ from ultralytics import YOLO
 model = YOLO('yolov8n-pose.pt')
 
 # 비디오 파일 열기
-video_path = "./uploads/1000002041.mp4"
+video_path = "./uploads/curry.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # CSV 파일 생성
